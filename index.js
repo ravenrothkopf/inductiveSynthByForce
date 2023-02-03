@@ -75,7 +75,7 @@ function grow () {
                 searchSpace.push("( " + func + " ) * " + i)
                 searchSpace.push("( " + func + ") + " + i)
                 searchSpace.push("( " + func + " ) - " + i)
-                searchSpace.push(i + " - (" + func + ")")
+                searchSpace.push(i + " - ( " + func + " )")
                 searchSpace.push("Math.floor( " + i + "  / (" + func + "))")
             }
         })

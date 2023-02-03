@@ -2,21 +2,43 @@
 <html>
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="generator" content="Hugo 0.88.1">
     <title>PBE Brute Force Algorithm</title>
+    <!-- Bootstrap core CSS -->
+    <link href="./assets/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="starter-template.css" rel="stylesheet">
 </head>
 
 <body>
-<h1>Raven Rothkopf - Program Synthesis Seminar HW 1</h1>
-<h2>Brute Force PBE Algorithm</h2>
+<div class="col-lg-10 mx-auto p-3 py-md-5">
+    <main>
+        <h1>Raven Rothkopf ~ Program Synthesis Seminar HW 1</h1>
+        <h2>Brute Force PBE Algorithm</h2>
+        <br>
+        <p>To synthesize a program for integer arithmetic, enter your inputs and your desired outputs in their respective boxes below!</p>
+        <p>Inputs and outputs should be seperated by commas.</p>
+        <p>For example, the specification (1 -> 2), (3 -> 4) should be entered as
+        <p>
+            Input(s): 1, 3
+        <p>
+            Output(s): 2, 4
+        </p>
+        <br>
+    </main>
     <label for="input">Input(s):</label>
     <input type="text" id="input" name="input">
     <label for="output">Output(s):</label>
     <input type="text" id="output" name="output">
-    <button type="submit" id="synth" onclick="synth()">Synthesize!</button>
+    <button type="submit" class="btn btn-primary" id="synth" onclick="synth()">Synthesize!</button>
     <br>
     <br>
     <label for="input">Function:</label>
     <div id="function"></div>
     <script src="index.js"></script>
+</div>
 </body>
 </html>
