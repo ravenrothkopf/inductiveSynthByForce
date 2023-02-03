@@ -1,71 +1,71 @@
+let count = 0
 let input = 0
 let output = 0
-let count = 0
 let searchSpace = []
 let functions = []
+let inputs = []
+let outputs = []
 let script = document.createElement("script");
 script.setAttribute("id", "synth_script");
 document.body.appendChild(script);
+let isSolution = false
 
 function synth(){
-    count = 0
-    document.getElementById("function").innerHTML = ""
-    searchSpace = []
-    functions = []
-    script.text = ""
-
-    document.getElementById("function").innerHTML = ""
-
-    input = parseInt(document.getElementById("input").value)
-    output = parseInt(document.getElementById("output").value)
-    console.log(input)
-    console.log(output)
+    reset()
+    inputs = document.getElementById("input").value.split(',')
+    outputs = document.getElementById("output").value.split(',')
+    for (let i = 0; i < inputs.length; i++){
+        inputs[i] = parseInt(inputs[i])
+        outputs[i] = parseInt(outputs[i])
+    }
     findFunc()
     document.getElementById("function").innerHTML += (functions[0] + "<br>")
 }
 
+//adapted from armando's algorithm without checking for equivalency!
 function findFunc() {
+    //add terminals to our search space
     for (let i = 1; i < 10; i++){
         searchSpace.push("input + " + i)
         searchSpace.push("input - " + i)
         searchSpace.push("input * " + i)
         searchSpace.push("input / " + i)
         searchSpace.push(i + ' - input')
-        if (input !== 0){
-            searchSpace.push(i + ' / input')
-        }
     }
-    searchSpace.every((func) => {
-        // console.log(func)
-        script.text = "function eval(" + func + "){\n let out = " + func + "\nreturn out}";
-        // console.log(output)
-        if (eval(func) === output) {
-            functions.push(func)
-            return false
-        }
-        return true
-    })
-
-    //if we haven't found a solution in the first round
-    if (functions.length === 0){
-        while (count < 2) {
-            grow()
-            searchSpace.every((func) => {
-                console.log(func)
+    //set the search space to only go three layers deep and then timeout cause otherwise it
+    //takes too long without pruning equivalence!
+    while (count < 2) {
+        grow()
+        //iterates through our inputs and outputs and evaluates them against
+        //every function in our search space until it finds one that works.
+        //if it finds a function that works, it will immediately stop and return that function
+        searchSpace.every((func) => {
+            for (let i = 0; i < inputs.length; i++){
+                input = inputs[i]
+                //create new eval func with given function
                 script.text = "function eval(" + func + "){\n let out = " + func + "\nreturn out}";
-                if (eval(func) === output) {
-                    functions.push(func)
-                    return false
+                if (eval(func) === outputs[i]) {
+                    isSolution = true
                 }
-                return true
-            })
-            count++
-        }
+                else {
+                    isSolution = false
+                    break;
+                }
+            }
+            //if eval is true for all inputs
+            if (isSolution){
+                functions.push(func)
+                return false
+            }
+            return true
+        })
+        count++
     }
-    functions.push("no solutions found")
+    functions.push("failure: timeout")
 }
 
 function grow () {
+    //add operations from our grammar to create nonterminals
     if (searchSpace.length !== 0){
         searchSpace.forEach((func) => {
             for (let i = 0; i < 10; i++){
@@ -75,72 +75,21 @@ function grow () {
                 searchSpace.push("( " + func + " ) - " + i)
                 searchSpace.push(i + " - (" + func + ")")
                 searchSpace.push(i + " / (" + func + ")")
-                // if (func.includes("+") || func.includes("-")){
-                //     searchSpace.push("( " + func + " ) / " + i)
-                //     searchSpace.push("( " + func + " ) * " + i)
-                // }
-                // else if (func.includes("*") || func.includes("/")) {
-                //     searchSpace.push("( " + func + ") + " + i)
-                //     searchSpace.push("( " + func + " ) - " + i)
-                // }
             }
         })
     }
 }
 
-
-// function eval(ins, out) {
-//     if (ins > out){
-//         let subs = sub(ins, out)
-//         if (out !== 0){
-//             let divs = ins / out
-//             functions.push("- " + subs, "/ " + divs)
-//         }
-//         else {
-//             functions.push("- " + subs)
-//         }
-//     }
-//     else if (ins < out) {
-//         let subs = sub(out, ins)
-//         if (ins !== 0){
-//             let divs = div(out, ins)
-//             functions.push("+ " + subs, "* " + divs)
-//         }
-//         else {
-//             functions.push("+ " + subs)
-//         }
-//
-//     }
-//     if (ins === out){
-//         functions.push("+ 0", "- 0")
-//     }
-// }
-//
-// // function eval(op, result) {
-// //     let prevSynthesized = document.getElementById("synth_script");
-// //     if(prevSynthesized) {
-// //         prevSynthesized.remove();
-// //     }
-// //
-// //     func = op + '= ' + result
-// //
-// //     let script = document.createElement("script");
-// //     script.text = "function unknown(input){\n input" + func + "\n return input}";
-// //     script.setAttribute("id", "synth_script");
-// //     document.body.appendChild(script);
-// // }
-// function sub(x, y){
-//     return x - y
-// }
-//
-// function div(x, y){
-//     return Math.floor(x / y)
-// }
-//
-// function mult(x, y){
-//     return x * y
-// }
-//
-// //collect all valid functions in an array
-// //loop through that array on every input and only keep the functions that work for all inputs
-//
+function reset(){
+    count = 0
+    document.getElementById("function").innerHTML = ""
+    searchSpace = []
+    functions = []
+    inputs = []
+    outputs = []
+    input = 0
+    output = 0
+    script.text = ""
+    isSolution = false
+    document.getElementById("function").innerHTML = ""
+}
