@@ -29,7 +29,9 @@ function findFunc() {
         searchSpace.push("input + " + i)
         searchSpace.push("input - " + i)
         searchSpace.push("input * " + i)
-        searchSpace.push("input / " + i)
+        //this is ugly but how I'm accounting for integer division!
+        searchSpace.push("Math.floor(input / " + i + ")")
+        searchSpace.push("Math.floor(" + i + "/ input)")
         searchSpace.push(i + ' - input')
     }
     //set the search space to only go three layers deep and then timeout cause otherwise it
@@ -68,13 +70,13 @@ function grow () {
     //add operations from our grammar to create nonterminals
     if (searchSpace.length !== 0){
         searchSpace.forEach((func) => {
-            for (let i = 0; i < 10; i++){
-                searchSpace.push("( " + func + " ) / " + i)
+            for (let i = 1; i < 10; i++){
+                searchSpace.push("Math.floor(( " + func + " ) / " + i + ")")
                 searchSpace.push("( " + func + " ) * " + i)
                 searchSpace.push("( " + func + ") + " + i)
                 searchSpace.push("( " + func + " ) - " + i)
                 searchSpace.push(i + " - (" + func + ")")
-                searchSpace.push(i + " / (" + func + ")")
+                searchSpace.push("Math.floor( " + i + "  / (" + func + "))")
             }
         })
     }
