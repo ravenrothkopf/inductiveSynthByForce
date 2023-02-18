@@ -1,97 +1,62 @@
 let count = 0
-let input = 0
-let output = 0
-let searchSpace = []
-let functions = []
-let inputs = []
-let outputs = []
-let script = document.createElement("script");
-script.setAttribute("id", "synth_script");
-document.body.appendChild(script);
+let input
 let isSolution = false
 
 function synth(){
     reset()
-    inputs = document.getElementById("input").value.split(',')
-    outputs = document.getElementById("output").value.split(',')
-    for (let i = 0; i < inputs.length; i++){
-        inputs[i] = parseInt(inputs[i])
-        outputs[i] = parseInt(outputs[i])
-    }
-    findFunc()
-    document.getElementById("function").innerHTML += (functions[0] + "<br>")
+    let searchSpace = ["input"]
+    const lang = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+    const ops = [" + ", " - ", " * ", " / "]
+    const inputs = document.getElementById("input").value.split(',')
+    const outputs = document.getElementById("output").value.split(',')
+    document.getElementById("function").innerHTML += findFunc(searchSpace, inputs, outputs, lang, ops)
 }
 
-//adapted from armando's algorithm without checking for equivalency!
-function findFunc() {
-    //add terminals to our search space
-    for (let i = 1; i < 10; i++){
-        searchSpace.push("input + " + i)
-        searchSpace.push("input - " + i)
-        searchSpace.push("input * " + i)
-        //this is ugly but how I'm accounting for integer division!
-        searchSpace.push("Math.floor(input / " + i + ")")
-        searchSpace.push("Math.floor(" + i + "/ input)")
-        searchSpace.push(i + ' - input')
-    }
-    //set the search space to only go three layers deep and then timeout cause otherwise it
-    //takes too long without pruning equivalence!
-    while (count < 2) {
-        grow()
-        //iterates through our inputs and outputs and evaluates them against
-        //every function in our search space until it finds one that works.
+//adapted from armando's algorithm!
+function findFunc(searchSpace, inputs, outputs, lang, ops) {
+    while (count < 3) {
+        grow(searchSpace, lang, ops)
+        //iterates through our inputs and outputs and evaluates them against every function in our search space until it finds one that works.
         //if it finds a function that works, it will immediately stop and return that function
-        searchSpace.every((func) => {
-            for (let i = 0; i < inputs.length; i++){
-                input = inputs[i]
-                //create new eval func with given function
-                script.text = "function eval(" + func + "){\n let out = " + func + "\nreturn out}";
-                if (eval(func) === outputs[i]) {
-                    isSolution = true
+        for (const func of searchSpace){
+            if (func !== "input"){
+                for (let i = 0; i < inputs.length; i++){
+                    input = parseInt(inputs[i])
+                    if (eval(func) === parseInt(outputs[i])) {
+                        isSolution = true
+                    }
+                    else {
+                        isSolution = false
+                        break;
+                    }
                 }
-                else {
-                    isSolution = false
-                    break;
+                //if eval is true for all inputs
+                if (isSolution){
+                    return func
                 }
             }
-            //if eval is true for all inputs
-            if (isSolution){
-                functions.push(func)
-                return false
-            }
-            return true
-        })
+        }
         count++
     }
-    functions.push("failure: timeout")
+    return "failure: timeout"
 }
 
-function grow () {
-    //add operations from our grammar to create nonterminals
-    if (searchSpace.length !== 0){
-        searchSpace.forEach((func) => {
-            for (let i = 1; i < 10; i++){
-                searchSpace.push("Math.floor(( " + func + " ) / " + i + ")")
-                searchSpace.push("( " + func + " ) * " + i)
-                searchSpace.push("( " + func + ") + " + i)
-                searchSpace.push("( " + func + " ) - " + i)
-                searchSpace.push(i + " - ( " + func + " )")
-                searchSpace.push("Math.floor( " + i + "  / (" + func + "))")
-            }
+function grow(searchSpace, lang, ops) {
+    //add operations from our grammar to create non-terminals
+    searchSpace.forEach((func) => {
+        lang.forEach((term) => {
+            ops.forEach((op) => {
+                if (op === " - " || (op === " / " && term !== 0)) {
+                    searchSpace.push("(" + func + ")" + op + term)
+                }
+                searchSpace.push(term + op + "(" + func + ")")
+            })
         })
-    }
+    })
 }
 
 function reset(){
     count = 0
-    document.getElementById("function").innerHTML = ""
-    searchSpace = []
-    functions = []
-    inputs = []
-    outputs = []
-    input = 0
-    output = 0
-    script.text = ""
     isSolution = false
     document.getElementById("function").innerHTML = ""
 }
