@@ -14,10 +14,12 @@ function synth(){
 
 //adapted from armando's algorithm!
 function findFunc(searchSpace, inputs, outputs, lang, ops) {
-    while (count < 3) {
+    let outputsSeen = []
+    while (count < 4) {
         grow(searchSpace, lang, ops)
         //iterates through our inputs and outputs and evaluates them against every function in our search space until it finds one that works.
         //if it finds a function that works, it will immediately stop and return that function
+        const newSpace = []
         for (const func of searchSpace){
             if (func !== "input"){
                 for (let i = 0; i < inputs.length; i++){
@@ -27,6 +29,7 @@ function findFunc(searchSpace, inputs, outputs, lang, ops) {
                     }
                     else {
                         isSolution = false
+                        elimEquivalents(newSpace, func, outputsSeen) //eliminate conditionally equivalent funcs if solution isn't found
                         break;
                     }
                 }
@@ -36,6 +39,7 @@ function findFunc(searchSpace, inputs, outputs, lang, ops) {
                 }
             }
         }
+        searchSpace = newSpace
         count++
     }
     return "failure: timeout"
@@ -46,13 +50,38 @@ function grow(searchSpace, lang, ops) {
     searchSpace.forEach((func) => {
         lang.forEach((term) => {
             ops.forEach((op) => {
-                if (op === " - " || (op === " / " && term !== 0)) {
-                    searchSpace.push("(" + func + ")" + op + term)
+                //integer division
+                if (op === " / " && term !== 0){
+                    searchSpace.push("Math.floor((" + func + ")" + op + term + ")")
+                    searchSpace.push("Math.floor( " + term + op + "(" + func + "))")
                 }
-                searchSpace.push(term + op + "(" + func + ")")
+                else {
+                    if (op === " - ") {
+                        searchSpace.push("(" + func + ")" + op + term)
+                    }
+                    searchSpace.push(term + op + "(" + func + ")")
+                }
             })
         })
     })
+}
+
+function elimEquivalents(newSpace, func, outputsSeen){
+    let equiv = false
+    let res = eval(func)
+    if (outputsSeen.length !== 0){
+        for (const out of outputsSeen) {
+            if (res === out){
+                equiv = true
+                break
+            }
+        }
+        if (!equiv){
+            newSpace.push(func)
+            outputsSeen.push(res)
+        }
+    }
+    else {newSpace.push(func); outputsSeen.push(res)}
 }
 
 function reset(){
