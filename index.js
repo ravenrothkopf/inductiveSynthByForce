@@ -1,6 +1,6 @@
 let count = 0
 let input
-let isSolution = false
+let output
 
 function synth(){
     reset()
@@ -9,34 +9,23 @@ function synth(){
     const ops = [" + ", " - ", " * ", " / "]
     const inputs = document.getElementById("input").value.split(',')
     const outputs = document.getElementById("output").value.split(',')
-    document.getElementById("function").innerHTML += findFunc(searchSpace, inputs, outputs, lang, ops)
+    input = parseInt(inputs[0])
+    output = parseInt(outputs[0])
+    document.getElementById("function").innerHTML += findFunc(searchSpace, lang, ops)
 }
 
 //adapted from armando's algorithm!
-function findFunc(searchSpace, inputs, outputs, lang, ops) {
-    let outputsSeen = []
-    while (count < 4) {
+function findFunc(searchSpace, lang, ops) {
+    const outputsSeen = new Set()
+    while (count < 6) {
         grow(searchSpace, lang, ops)
         //iterates through our inputs and outputs and evaluates them against every function in our search space until it finds one that works.
         //if it finds a function that works, it will immediately stop and return that function
         const newSpace = []
         for (const func of searchSpace){
             if (func !== "input"){
-                for (let i = 0; i < inputs.length; i++){
-                    input = parseInt(inputs[i])
-                    if (eval(func) === parseInt(outputs[i])) {
-                        isSolution = true
-                    }
-                    else {
-                        isSolution = false
-                        elimEquivalents(newSpace, func, outputsSeen) //eliminate conditionally equivalent funcs if solution isn't found
-                        break;
-                    }
-                }
-                //if eval is true for all inputs
-                if (isSolution){
-                    return func
-                }
+                if (eval(func) === output) { return func }
+                else { elimEquivalents(newSpace, func, outputsSeen) }
             }
         }
         searchSpace = newSpace
@@ -70,22 +59,19 @@ function elimEquivalents(newSpace, func, outputsSeen){
     let equiv = false
     let res = eval(func)
     if (outputsSeen.length !== 0){
-        for (const out of outputsSeen) {
-            if (res === out){
-                equiv = true
-                break
-            }
+        if (outputsSeen.has(res)) {
+            equiv = true
         }
         if (!equiv){
             newSpace.push(func)
-            outputsSeen.push(res)
+            console.log(res)
+            outputsSeen.add(res)
         }
     }
-    else {newSpace.push(func); outputsSeen.push(res)}
+    else { newSpace.push(func); outputsSeen.add(res) }
 }
 
 function reset(){
     count = 0
-    isSolution = false
     document.getElementById("function").innerHTML = ""
 }
